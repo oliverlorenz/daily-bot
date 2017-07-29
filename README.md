@@ -1,12 +1,12 @@
 # daily-bot
 
-A preconfigures [NodeRED](https://nodered.org/) instance for providing a bot who send out a message per day to:
+A preconfigures [NodeRED](https://nodered.org/) instance providing a bot who send out a message per day.
 
 **Currently supported channels**
 
 * twitter
 
-The idea is, that the bot takes its messages from a trello list and moved the sent out message to another list. Trello makes it easy to sort, manage and plan tweets in a team.
+The idea is, that the bot takes its messages from a [trello](https://trello.com) list and moved the sent out message to another list. Trello makes it easy to sort, manage and plan tweets in a team.
 
 ## Installation
 
