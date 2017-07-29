@@ -1,4 +1,3 @@
-docker-compose.yml
 .env
 data/.flows.json.backup
 data/.config.json

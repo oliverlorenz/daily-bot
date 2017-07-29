@@ -1,0 +1,18 @@
+version: "3"
+services:
+  node-red:
+    container_name: daily-bot-${BOT_NAME}
+    build: .
+    image: dailybot
+    volumes:
+      - "./data:/data"
+    ports:
+      - "1880:1880"
+    environment:
+      - NODE_RED_USERNAME
+      - NODE_RED_PASSWORD
+      - TRIGGER_HOUR_UTC
+      - TRIGGER_MINUTE_UTC
+      - TRELLO_PICKUP_LIST_ID
+      - TRELLO_MOVE_TO_LIST_ID
+      - PREFIX
