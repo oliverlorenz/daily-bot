@@ -1,0 +1,267 @@
+[
+    {
+        "id": "420be9bf.8f132",
+        "type": "tab",
+        "label": "Flow 1"
+    },
+    {
+        "id": "21ac0c55.a2e2cc",
+        "type": "trello-credentials",
+        "z": "",
+        "memberId": "oliverlorenz1",
+        "apikey": "e5c9369cbf54cd99b735435e616b49e6",
+        "secret": "7c4b87f807fccd7637e43357670228a9f8d65cb6ee51473824914d0a6cdb1257"
+    },
+    {
+        "id": "804ef0dd.970ad",
+        "type": "json-db-collection",
+        "z": "420be9bf.8f132",
+        "name": "",
+        "collection": "telegram",
+        "save": true
+    },
+    {
+        "id": "9c8e3efc.b42788",
+        "type": "inject",
+        "z": "420be9bf.8f132",
+        "name": "inject every minute",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "x": 160,
+        "y": 60,
+        "wires": [
+            [
+                "49febcb3.330d34"
+            ]
+        ]
+    },
+    {
+        "id": "49febcb3.330d34",
+        "type": "function",
+        "z": "420be9bf.8f132",
+        "name": "check is time correct time",
+        "func": "const triggerHour = parseInt(context.global.process.env.TRIGGER_HOUR_UTC, 10);\nconst triggerMinute = parseInt(context.global.process.env.TRIGGER_MINUTE_UTC, 10);\n\nconst currentDateTime = new Date();\nconst currentHour = currentDateTime.getHours();\nconst currentMinute = currentDateTime.getMinutes();\n\nlet color = 'yellow';\nlet sign = '!=';\n\nlet result = [msg, null];\nif (triggerHour === currentHour && triggerMinute === currentMinute) {\n    sign = '==';\n    color = 'green';\n} else {\n    result = [null, msg];\n}\n\nnode.status({\n    fill: color, \n    text: `${triggerHour}:${triggerMinute} ${sign} ${currentHour}:${currentMinute}`\n    \n});\nreturn result",
+        "outputs": "2",
+        "noerr": 0,
+        "x": 410,
+        "y": 60,
+        "wires": [
+            [
+                "8fe73157.c54b"
+            ],
+            []
+        ],
+        "outputLabels": [
+            "time matched",
+            "time not matched"
+        ]
+    },
+    {
+        "id": "dac9a998.411cd",
+        "type": "trello-get-list-cards",
+        "z": "420be9bf.8f132",
+        "trello": "21ac0c55.a2e2cc",
+        "idList": "",
+        "x": 720,
+        "y": 180,
+        "wires": [
+            [
+                "bfa97ef3.c5b65"
+            ]
+        ]
+    },
+    {
+        "id": "bfa97ef3.c5b65",
+        "type": "function",
+        "z": "420be9bf.8f132",
+        "name": "first card",
+        "func": "msg.payload = msg.payload[0]\nmsg.trello = {\n    idCard: msg.payload.id\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 900,
+        "y": 180,
+        "wires": [
+            [
+                "2afebe1e.5e5f8a"
+            ]
+        ]
+    },
+    {
+        "id": "ba6be6c4.7c618",
+        "type": "trello-move-card-to-list",
+        "z": "420be9bf.8f132",
+        "trello": "21ac0c55.a2e2cc",
+        "idList": "",
+        "idCard": "",
+        "x": 730,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7308d5a2.30e904",
+        "type": "function",
+        "z": "420be9bf.8f132",
+        "name": "compose tweet with prefix (PREFIX)",
+        "func": "const prefix = context.global.process.env.PREFIX\nmsg.tweet = msg.payload.name\nmsg.payload = prefix + \" \" + msg.tweet\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 250,
+        "y": 300,
+        "wires": [
+            [
+                "7b7e7897.77ae08"
+            ]
+        ]
+    },
+    {
+        "id": "7b7e7897.77ae08",
+        "type": "twitter out",
+        "z": "420be9bf.8f132",
+        "twitter": "",
+        "name": "",
+        "x": 1050,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "a07e12a2.5f6c48",
+        "type": "link in",
+        "z": "420be9bf.8f132",
+        "name": "in: pickup trello card",
+        "links": [
+            "8fe73157.c54b"
+        ],
+        "x": 55,
+        "y": 180,
+        "wires": [
+            [
+                "e3ae3b42.26e568"
+            ]
+        ]
+    },
+    {
+        "id": "6f318ed8.f16098",
+        "type": "comment",
+        "z": "420be9bf.8f132",
+        "name": "Pickup the first card from a trello list",
+        "info": "",
+        "x": 180,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "8fe73157.c54b",
+        "type": "link out",
+        "z": "420be9bf.8f132",
+        "name": "out: triggered at time",
+        "links": [
+            "a07e12a2.5f6c48"
+        ],
+        "x": 575,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "e3ae3b42.26e568",
+        "type": "function",
+        "z": "420be9bf.8f132",
+        "name": "get idList from environment variable (TRELLO_PICKUP_LIST_ID)",
+        "func": "msg.trello = {\n    idList: context.global.process.env.TRELLO_PICKUP_LIST_ID\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 340,
+        "y": 180,
+        "wires": [
+            [
+                "dac9a998.411cd"
+            ]
+        ]
+    },
+    {
+        "id": "2afebe1e.5e5f8a",
+        "type": "link out",
+        "z": "420be9bf.8f132",
+        "name": "out: trello card picked up",
+        "links": [
+            "815c5dbe.935bc",
+            "a8ec5847.19501"
+        ],
+        "x": 1015,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "ec941e9c.a1e3f8",
+        "type": "comment",
+        "z": "420be9bf.8f132",
+        "name": "Tweet the name of the trello card",
+        "info": "",
+        "x": 170,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "815c5dbe.935bc",
+        "type": "link in",
+        "z": "420be9bf.8f132",
+        "name": "in: twitter it",
+        "links": [
+            "2afebe1e.5e5f8a"
+        ],
+        "x": 55,
+        "y": 300,
+        "wires": [
+            [
+                "7308d5a2.30e904"
+            ]
+        ]
+    },
+    {
+        "id": "e348abbc.015db8",
+        "type": "comment",
+        "z": "420be9bf.8f132",
+        "name": "Move trello card to another list",
+        "info": "",
+        "x": 170,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "17423826.c99a48",
+        "type": "function",
+        "z": "420be9bf.8f132",
+        "name": "get idList from environment variable (TRELLO_MOVE_TO_LIST_ID)",
+        "func": "msg.trello = {\n    idList: context.global.process.env.TRELLO_MOVE_TO_LIST_ID,\n    idCard: msg.payload.id\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 350,
+        "y": 420,
+        "wires": [
+            [
+                "ba6be6c4.7c618"
+            ]
+        ]
+    },
+    {
+        "id": "a8ec5847.19501",
+        "type": "link in",
+        "z": "420be9bf.8f132",
+        "name": "in: move trello card to another list",
+        "links": [
+            "2afebe1e.5e5f8a"
+        ],
+        "x": 55,
+        "y": 420,
+        "wires": [
+            [
+                "17423826.c99a48"
+            ]
+        ]
+    }
+]
